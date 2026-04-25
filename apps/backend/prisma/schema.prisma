@@ -1,0 +1,234 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  name      String?
+  isRepeat  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  pets     Pet[]
+  bookings Booking[]
+
+  @@map("customers")
+}
+
+model Area {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  city     String
+  active   Boolean @default(true)
+
+  groomers GroomerArea[]
+  pets     Pet[]
+  bookings Booking[]
+
+  @@map("areas")
+}
+
+model Groomer {
+  id           String  @id @default(cuid())
+  name         String
+  phone        String  @unique
+  passwordHash String
+  active       Boolean @default(true)
+  createdAt    DateTime @default(now())
+
+  areas        GroomerArea[]
+  bookings     Booking[]
+  leaves       GroomerLeave[]
+  blockedSlots BlockedSlot[]
+
+  @@map("groomers")
+}
+
+model GroomerArea {
+  groomerId String
+  areaId    String
+  groomer   Groomer @relation(fields: [groomerId], references: [id])
+  area      Area    @relation(fields: [areaId], references: [id])
+
+  @@id([groomerId, areaId])
+  @@map("groomer_areas")
+}
+
+model Pet {
+  id                  String    @id @default(cuid())
+  customerId          String
+  customer            Customer  @relation(fields: [customerId], references: [id])
+  name                String
+  breed               String
+  dob                 DateTime?
+  photoUrl            String?
+  areaId              String?
+  area                Area?     @relation(fields: [areaId], references: [id])
+  address             String
+  landmark            String?
+  specialRequirements String[]
+  remarks             String?
+  groomingFrequency   Int?
+  lastGroomedAt       DateTime?
+  active              Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  bookings  Booking[]
+  reminders Reminder[]
+
+  @@map("pets")
+}
+
+model Service {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  basePrice   Decimal @db.Decimal(10, 2)
+  durationMin Int
+  active      Boolean @default(true)
+
+  bookings Booking[]
+
+  @@map("services")
+}
+
+model Booking {
+  id              String        @id @default(cuid())
+  bookingNumber   String        @unique
+  customerId      String
+  customer        Customer      @relation(fields: [customerId], references: [id])
+  petId           String
+  pet             Pet           @relation(fields: [petId], references: [id])
+  groomerId       String?
+  groomer         Groomer?      @relation(fields: [groomerId], references: [id])
+  serviceId       String
+  service         Service       @relation(fields: [serviceId], references: [id])
+  areaId          String
+  area            Area          @relation(fields: [areaId], references: [id])
+  address         String
+  landmark        String?
+  scheduledAt     DateTime
+  status          BookingStatus @default(PENDING)
+  paymentMethod   PaymentMethod
+  paymentStatus   PaymentStatus @default(UNPAID)
+  razorpayOrderId String?
+  razorpayPayId   String?
+  amount          Decimal       @db.Decimal(10, 2)
+  notes           String?
+  cancelledAt     DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  reminders     Reminder[]
+  statusHistory BookingStatusHistory[]
+
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  ON_THE_WAY
+  STARTED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  ONLINE
+  PAY_AT_HOME
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+}
+
+model BookingStatusHistory {
+  id         String   @id @default(cuid())
+  bookingId  String
+  booking    Booking  @relation(fields: [bookingId], references: [id])
+  fromStatus String?
+  toStatus   String
+  changedBy  String?
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  @@map("booking_status_history")
+}
+
+model GroomerLeave {
+  id        String   @id @default(cuid())
+  groomerId String
+  groomer   Groomer  @relation(fields: [groomerId], references: [id])
+  date      DateTime @db.Date
+  fullDay   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@unique([groomerId, date])
+  @@map("groomer_leaves")
+}
+
+model BlockedSlot {
+  id        String   @id @default(cuid())
+  groomerId String
+  groomer   Groomer  @relation(fields: [groomerId], references: [id])
+  startsAt  DateTime
+  endsAt    DateTime
+  createdAt DateTime @default(now())
+
+  @@map("blocked_slots")
+}
+
+model Reminder {
+  id        String       @id @default(cuid())
+  bookingId String
+  booking   Booking      @relation(fields: [bookingId], references: [id])
+  petId     String
+  pet       Pet          @relation(fields: [petId], references: [id])
+  sendAt    DateTime
+  sent      Boolean      @default(false)
+  sentAt    DateTime?
+  type      ReminderType
+  bullJobId String?
+  createdAt DateTime     @default(now())
+
+  @@map("reminders")
+}
+
+enum ReminderType {
+  DAY_BEFORE
+  FREQUENCY_15
+  FREQUENCY_30
+  FREQUENCY_60
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  createdAt    DateTime @default(now())
+
+  @@map("admins")
+}
+
+model WaSession {
+  id        String   @id @default(cuid())
+  phone     String   @unique
+  step      String   @default("IDLE")
+  context   Json     @default("{}")
+  expiresAt DateTime
+  updatedAt DateTime @updatedAt
+
+  @@map("wa_sessions")
+}
