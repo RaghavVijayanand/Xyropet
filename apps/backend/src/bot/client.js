@@ -9,7 +9,6 @@ const path = require('path');
 const fs = require('fs');
 const qrcode = require('qrcode-terminal');
 const logger = require('../lib/logger');
-const { handleMessage } = require('./handlers/message.handler');
 
 const SESSION_PATH = path.resolve(process.env.WA_SESSION_PATH || './wa-session');
 
@@ -57,6 +56,8 @@ async function initWhatsApp() {
 
   sock.ev.on('messages.upsert', async ({ messages, type }) => {
     if (type !== 'notify') return;
+    // Lazy require breaks the circular dependency cycle at startup
+    const { handleMessage } = require('./handlers/message.handler');
     for (const msg of messages) {
       if (msg.key.fromMe) continue;
       if (isJidBroadcast(msg.key.remoteJid)) continue;

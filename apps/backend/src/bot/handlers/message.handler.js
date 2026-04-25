@@ -1,6 +1,7 @@
 const logger = require('../../lib/logger');
 const { getSession, patchSession, clearSession } = require('../session');
-const { sendText, sendList, sendButtons } = require('../client');
+const { sendText } = require('../client');
+const { extractBody, hasMedia } = require('../utils');
 const idleHandler = require('../flows/idle.flow');
 const bookingFlow = require('../flows/booking.flow');
 const petFlow = require('../flows/pet.flow');
@@ -51,22 +52,4 @@ async function handleMessage(sock, msg) {
   }
 }
 
-function extractBody(msg) {
-  const m = msg.message;
-  if (!m) return null;
-  return (
-    m.conversation ||
-    m.extendedTextMessage?.text ||
-    m.listResponseMessage?.singleSelectReply?.selectedRowId ||
-    m.buttonsResponseMessage?.selectedButtonId ||
-    m.templateButtonReplyMessage?.selectedId ||
-    null
-  );
-}
-
-function hasMedia(msg) {
-  const m = msg.message;
-  return !!(m?.imageMessage || m?.documentMessage);
-}
-
-module.exports = { handleMessage, extractBody, hasMedia };
+module.exports = { handleMessage };

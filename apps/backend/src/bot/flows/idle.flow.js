@@ -80,7 +80,6 @@ async function handleRebook(jid, phone, petId) {
     jid,
     `🐾 Let's rebook for *${pet.name}*!\n\n📍 Address on file:\n${pet.address}${pet.landmark ? `\nLandmark: ${pet.landmark}` : ''}`
   );
-  const { sendButtons } = require('../client');
   await sendButtons(jid, 'Confirm address?', [
     { id: 'confirm_address', title: '✅ Use this address' },
     { id: 'change_address', title: '✏️ Change address' },

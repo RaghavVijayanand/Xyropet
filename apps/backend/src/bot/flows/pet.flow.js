@@ -3,7 +3,7 @@ const { patchSession } = require('../session');
 const { sendText, sendList, sendButtons } = require('../client');
 const { uploadPetPhoto } = require('../../services/cloudinary.service');
 const t = require('../messages/templates');
-const { extractBody, hasMedia } = require('../handlers/message.handler');
+const { extractBody, hasMedia } = require('../utils');
 
 async function petFlow(sock, jid, phone, body, session, msg) {
   const { step, context } = session;
@@ -212,7 +212,6 @@ async function handlePetRemarks(jid, phone, body, context) {
       context: { customerId: context.customerId },
     });
 
-    const { sendList } = require('../client');
     const rows = [
       ...pets.map(p => ({ id: p.id, title: p.name, description: `${p.breed} • ${p.area?.name || ''}` })),
       { id: 'new_pet', title: '➕ Add New Pet', description: 'Register another pet' },

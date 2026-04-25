@@ -5,7 +5,7 @@ let client;
 
 async function initRedis() {
   client = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
-    maxRetriesPerRequest: 3,
+    maxRetriesPerRequest: null,
     retryStrategy: (times) => Math.min(times * 100, 3000),
   });
 
