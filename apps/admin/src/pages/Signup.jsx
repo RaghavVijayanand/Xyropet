@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { login } from '../lib/auth';
+import { register } from '../lib/auth';
 
-export default function Login() {
+export default function Signup() {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -14,10 +15,10 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      await login(email, password);
+      await register(name, email, password);
       navigate('/dashboard');
     } catch (err) {
-      setError(err?.error || 'Login failed');
+      setError(err?.error || 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -29,7 +30,7 @@ export default function Login() {
         <div className="text-center mb-6">
           <div className="text-4xl mb-2">🐾</div>
           <h1 className="text-2xl font-bold text-gray-800">XYROPet</h1>
-          <p className="text-sm text-gray-500 mt-1">Admin Dashboard</p>
+          <p className="text-sm text-gray-500 mt-1">Create Admin Account</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -38,6 +39,18 @@ export default function Login() {
               {error}
             </div>
           )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent"
+              placeholder="John Doe"
+            />
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -58,6 +71,7 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              minLength={8}
               className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-600 focus:border-transparent"
               placeholder="••••••••"
             />
@@ -68,14 +82,14 @@ export default function Login() {
             disabled={loading}
             className="w-full bg-primary-600 text-white font-medium py-2.5 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {loading ? 'Creating account...' : 'Create Account'}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          Don't have an account?{' '}
-          <Link to="/signup" className="text-primary-600 font-medium hover:underline">
-            Sign up
+          Already have an account?{' '}
+          <Link to="/login" className="text-primary-600 font-medium hover:underline">
+            Sign in
           </Link>
         </p>
       </div>

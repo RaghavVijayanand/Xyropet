@@ -26,6 +26,25 @@ router.post('/admin/login', async (req, res, next) => {
   }
 });
 
+// Admin register
+router.post('/admin/register', async (req, res, next) => {
+  try {
+    const { name, email, password } = req.body;
+    if (!name || !email || !password) return res.status(400).json({ error: 'Name, email, and password required' });
+
+    const existing = await prisma.admin.findUnique({ where: { email } });
+    if (existing) return res.status(409).json({ error: 'Email already registered' });
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const admin = await prisma.admin.create({ data: { name, email, passwordHash } });
+
+    const token = signToken({ sub: admin.id, role: 'admin', name: admin.name });
+    res.status(201).json({ token, name: admin.name, role: 'admin' });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Groomer login
 router.post('/groomer/login', async (req, res, next) => {
   try {
